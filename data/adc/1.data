@@ -1,0 +1,3 @@
+MODULE NAME: dirlister
+RESULT:
+['.gitTrojan.py.swp', 'README.md', 'modules', 'config', 'gitTrojan.py', '.gitignore', '.git', 'data']
