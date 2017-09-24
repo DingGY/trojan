@@ -1,0 +1,8 @@
+﻿H:\Program Files (x86)\Microsoft Visual Studio\2017\Community\Common7\IDE\VC\VCTargets\Microsoft.CppBuild.targets(387,5): warning MSB8028: 中间目录(Debug\)包含从另一个项目(pipcmd.vcxproj)共享的文件。   这会导致错误的清除和重新生成行为。
+  remoteshell.c
+f:\项目\hack\pipcmd\pipcmd\remoteshell.c(38): warning C4047: “==”:“BOOL”与“void *”的间接级别不同
+f:\项目\hack\pipcmd\pipcmd\remoteshell.c(122): warning C4047: “函数”:“DWORD”与“void *”的间接级别不同
+f:\项目\hack\pipcmd\pipcmd\remoteshell.c(122): warning C4024: “CreateProcessW”: 形参和实参 6 的类型不同
+f:\项目\hack\pipcmd\pipcmd\remoteshell.c(139): warning C4047: “==”:“BOOL”与“void *”的间接级别不同
+  pipcmd.vcxproj -> F:\项目\hack\pipcmd\Debug\remotecmd.exe
+  pipcmd.vcxproj -> F:\项目\hack\pipcmd\Debug\remotecmd.pdb (Partial PDB)
