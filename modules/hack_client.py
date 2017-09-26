@@ -2,6 +2,7 @@ import socket
 import struct
 import shlex
 import os
+import re
 target_host = "127.0.0.1"
 target_port = 9999
 
@@ -12,7 +13,7 @@ def cmd_parse():
         act_type = 0x00
         cmd = struct.pack('B',act_type) + "\r"
         return cmd,act_type,None
-    cmd_input = data.split(" ")
+    cmd_input = re.search(r"(\S*)\s(.*)",data).groups()
     if cmd_input[0] == '-d':
         '''download file action'''
         act_type = 0x01
@@ -47,10 +48,32 @@ def client_recv(conn):
         resp += data
     return resp
 
-def download_file(data,file):
+def download_file(file,conn):
     try:
         fd = open(os.path.basename(file),"wb")
-        fd.write(data)
+        while True:
+            data = conn.recv(1024)
+            fd.write(data)
+            if len(data) != 1024:
+                break
+        fd.close()
+    except Exception as e:
+        print e
+        return False
+    return True
+
+def upload_file(dl_filename,conn):
+    try:
+        buffsize = 1024
+        status = conn.recv(4096)
+        if struct.unpack('B', status)[0] != 0x00:
+            return False
+        fd = open(dl_filename,"rb")
+        while True:
+            data = fd.read(buffsize)
+            conn.send(data)
+            if len(data) != 1024:
+                break
         fd.close()
     except Exception as e:
         print e
@@ -63,15 +86,19 @@ def main():
     while True:
         (cmd,act_type,opt) = cmd_parse()
         client.send(cmd)
-        resp = client_recv(client)
         if act_type == 0x00:
+            resp = client_recv(client)
             print resp.decode("GBK")
         elif act_type == 0x01:
-            if download_file(resp,opt):
+            if download_file(opt,client):
                 print  "[+] download %s successed!" % opt
             else:
                 print "[-] download %s failure!" % opt
-
+        elif act_type == 0x02:
+            if upload_file(opt,client):
+                print  "[+] upload %s successed!" % opt
+            else:
+                print "[-] upload %s failure!!" % opt
 
 __name__ = "__main__"
 

