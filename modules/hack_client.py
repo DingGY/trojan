@@ -13,7 +13,7 @@ def cmd_parse():
         act_type = 0x00
         cmd = struct.pack('B',act_type) + "\r"
         return cmd,act_type,None
-    cmd_input = re.search(r"(\S*)\s(.*)",data).groups()
+    cmd_input = re.search(r"(\S*)\s?(.*)",data).groups()
     if cmd_input[0] == '-d':
         '''download file action'''
         act_type = 0x01
