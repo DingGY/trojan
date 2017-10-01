@@ -3,9 +3,27 @@ import struct
 import shlex
 import os
 import re
+from optparse import  OptionParser
 target_host = "127.0.0.1"
 target_port = 9999
 
+
+def opt_parse():
+
+    global target_host
+    global target_port
+    try:
+        opt_parm = OptionParser()
+        opt_parm.add_option("-i","--ip",dest="ip",\
+                help="target bind ip", type="string",default=target_host)
+        opt_parm.add_option("-p","--port",dest="port",\
+                help="target listen port",type="int",default=target_port)
+        (options, args) = opt_parm.parse_args()
+
+        target_host = options.ip
+        target_port = options.port
+    except Exception as e:
+        print e
 
 def cmd_parse():
     data = raw_input(">")
@@ -81,6 +99,7 @@ def upload_file(dl_filename,conn):
     return True
 
 def main():
+    opt_parse()
     client = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     client.connect((target_host,target_port))
     while True:
